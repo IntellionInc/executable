@@ -1,0 +1,23 @@
+{
+  "name": "@intellion/executable",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main/Executable.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IntellionInc/executable.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IntellionInc/executable/issues"
+  },
+  "homepage": "https://github.com/IntellionInc/executable#readme",
+  "dependencies": {
+    "@intellion/matchalatte": "^1.0.1",
+    "mocha": "^7.1.2"
+  }
+}

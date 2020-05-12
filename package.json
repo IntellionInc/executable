@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/IntellionInc/executable#readme",
   "dependencies": {
-    "@intellion/matchalatte": "^1.0.1",
+    "@intellion/matchalatte": "^1.1.3",
     "mocha": "^7.1.2"
   }
 }

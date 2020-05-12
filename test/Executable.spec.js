@@ -31,15 +31,29 @@ describe("Executable", () => {
   describe("execute", () => {
     let mainResult = { main: "result" };
     let options = { some: "options" };
-    beforeEach(() => {
-      new Stub(executable._beforeHooks).receives("0").with().andReturns();
-      new Stub(executable._beforeHooks).receives("1").with().andResolves();
-      new Stub(executable._afterHooks).receives("0").with().andReturns();
-      new Stub(executable._afterHooks).receives("1").with().andResolves();
-      new Stub(executable).receives("main").with(options).andResolves(mainResult);
+    context("when everything succeeds", () => {
+      beforeEach(() => {
+        new Stub(executable._beforeHooks).receives("0").with().andReturns();
+        new Stub(executable._beforeHooks).receives("1").with().andResolves();
+        new Stub(executable._afterHooks).receives("0").with().andReturns();
+        new Stub(executable._afterHooks).receives("1").with().andResolves();
+        new Stub(executable).receives("main").with(options).andResolves(mainResult);
+      });
+      it("should call all relevant hooks and return main result", () => {
+        return new Assertion(executable.exec).whenCalledWith(options).should().resolve(mainResult);
+      });
     });
-    it("should call all relevant hooks and return main result", () => {
-      return new Assertion(executable.exec).whenCalledWith(options).should().resolve(mainResult);
+    context("when a beforeHook fails", () => {
+      beforeEach(() => {
+        new Stub(executable._beforeHooks).receives("0").with().andRejects();
+        new Stub(executable._beforeHooks).doesnt().receive("1");
+      });
+    });
+    context("when main call fails", () => {
+
+    });
+    context("when an afterHook fails", () => {
+
     });
   });
 });

@@ -38,6 +38,8 @@ describe("Executable", () => {
       beforeEach(() => {
         new Stub(executable._beforeHooks).receives("0").with().andReturns();
         new Stub(executable._beforeHooks).receives("1").with().andResolves();
+        new Stub(executable._beforeHooks).receives("2").with().andResolves({});
+        new Stub(executable._beforeHooks).receives("3").with().andReturns({});
         new Stub(executable._afterHooks).receives("0").with().andReturns();
         new Stub(executable._afterHooks).receives("1").with().andResolves();
         new Stub(executable).receives("main").with(options).andResolves(mainResult);
@@ -53,6 +55,14 @@ describe("Executable", () => {
       context("when a beforeHook throws an error", () => {
         beforeEach(() => {
           new Stub(executable._beforeHooks).receives("0").with().andRejects();
+          new Stub(executable._beforeHooks).doesnt().receive("1");
+        });
+        it("should return unsuccessful response", () => new Assertion(executable.exec)
+          .whenCalledWith().should().resolve({ success: false }));
+      });
+      context("when a beforeHook returns unsuccessful response", () => {
+        beforeEach(() => {
+          new Stub(executable._beforeHooks).receives("0").with().andResolves({ success: false });
           new Stub(executable._beforeHooks).doesnt().receive("1");
         });
         it("should return unsuccessful response", () => new Assertion(executable.exec)

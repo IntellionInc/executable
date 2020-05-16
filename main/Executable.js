@@ -15,7 +15,10 @@ module.exports = class Executable {
     return this.yield;
   };
   #callArray = async array => {
-    for (let i in array) try { await array[i]() } catch { this.#errorHandler(); break; };
+    for (let i in array) try {
+      let hookResult = await array[i]();
+      if (hookResult && hookResult.success === false) { this.#errorHandler(); break; };
+    } catch { this.#errorHandler(); break; };
     return true;
   };
   #errorHandler = async e => this.yield.success = false;

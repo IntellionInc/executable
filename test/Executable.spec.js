@@ -60,8 +60,10 @@ describe("Executable", () => {
           [{
             name: "async error",
             cb: () => new Stub(executable[`_${hookType}s`]).receives("0").with().andRejects(),
+          }, {
             name: "sync error",
             cb: () => new Stub(executable[`_${hookType}s`]).receives("0").with().andThrows(),
+          }, {
             name: "unsuccessful response",
             cb: () => new Stub(executable[`_${hookType}s`]).receives("0").with().andResolves({ success: false }),
           }].forEach(hookResponse => {
@@ -74,8 +76,26 @@ describe("Executable", () => {
         });
       });
     });
-    context("when main call fails", () => {
-
+    context("main call failure", () => {
+      [{
+        name: "async error",
+        mainResult: null,
+        cb: () => new Stub(executable).receives("main").with(options).andRejects(),
+      }, {
+        name: "sync error",
+        mainResult: null,
+        cb: () => new Stub(executable).receives("main").with(options).andThrows(),
+      }, {
+        name: "unsuccessful response",
+        mainResult: { success: false },
+        cb: () => new Stub(executable).receives("main").with(options).andResolves({ success: false }),
+      }].forEach(hookResponse => {
+        context(`when main call returns ${hookResponse.name}`, () => {
+          beforeEach(hookResponse.cb);
+          it("should return unsuccessful response", () => new Assertion(executable.exec)
+            .whenCalledWith(options).should().resolve({ success: false, main: hookResponse.mainResult }));
+        });
+      })
     });
   });
 });

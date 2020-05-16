@@ -3,15 +3,20 @@ module.exports = class Executable {
     this._beforeHooks = [];
     this._afterHooks = [];
     this._errors = [];
+    this.yield = { success: true };
   };
   before = callback => { this._beforeHooks.push(callback); return this; };
   after = callback => { this._afterHooks.push(callback); return this; };
   main = () => this;
   exec = async options => {
-    await this.#callArray(this._beforeHooks);
-    let r = await this.main(options);
+    if (await this.#callArray(this._beforeHooks) && !this.yield.success) return this.yield;
+    this.yield.main = await this.main(options);
     await this.#callArray(this._afterHooks);
-    return r;
+    return this.yield;
   };
-  #callArray = async array => { for (let i in array) await array[i]() };
+  #callArray = async array => {
+    for (let i in array) try { await array[i]() } catch { this.#errorHandler(); break; };
+    return true;
+  };
+  #errorHandler = async e => this.yield.success = false;
 };

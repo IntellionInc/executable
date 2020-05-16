@@ -1,4 +1,4 @@
-const { Assertion, expect, Stub } = require("@intellion/matchalatte");
+const { Assertion, expect, Stub, sinon } = require("@intellion/matchalatte");
 const Executable = require("../main/Executable");
 
 describe("Executable", () => {
@@ -8,7 +8,10 @@ describe("Executable", () => {
   });
   describe("constructor", () => {
     it("should create an executable instance", () => {
-      new Assertion(executable).toLooselyHaveProperties({ _beforeHooks: [], _afterHooks: [], _errors: [] });
+      new Assertion(executable).toLooselyHaveProperties({
+        _beforeHooks: [], _afterHooks: [], _errors: [],
+        yield: { success: true }
+      });
     });
   });
   ["before", "after"].forEach(hookType => {
@@ -40,13 +43,20 @@ describe("Executable", () => {
         new Stub(executable).receives("main").with(options).andResolves(mainResult);
       });
       it("should call all relevant hooks and return main result", () => {
-        return new Assertion(executable.exec).whenCalledWith(options).should().resolve(mainResult);
+        return new Assertion(executable.exec).whenCalledWith(options).should().resolve({ success: true, main: mainResult });
       });
     });
     context("when a beforeHook fails", () => {
       beforeEach(() => {
-        new Stub(executable._beforeHooks).receives("0").with().andRejects();
-        new Stub(executable._beforeHooks).doesnt().receive("1");
+        executable._beforeHooks.push(sinon.stub(), sinon.stub());
+      });
+      context("when a beforeHook throws an error", () => {
+        beforeEach(() => {
+          new Stub(executable._beforeHooks).receives("0").with().andRejects();
+          new Stub(executable._beforeHooks).doesnt().receive("1");
+        });
+        it("should return unsuccessful response", () => new Assertion(executable.exec)
+          .whenCalledWith().should().resolve({ success: false }));
       });
     });
     context("when main call fails", () => {

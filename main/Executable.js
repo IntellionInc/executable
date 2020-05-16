@@ -3,7 +3,7 @@ module.exports = class Executable {
     this._beforeHooks = [];
     this._afterHooks = [];
     this._errors = [];
-    this.yield = { success: true };
+    this.yield = { success: true, main: null };
   };
   before = callback => { this._beforeHooks.push(callback); return this; };
   after = callback => { this._afterHooks.push(callback); return this; };

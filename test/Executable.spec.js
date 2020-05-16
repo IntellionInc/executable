@@ -10,7 +10,7 @@ describe("Executable", () => {
     it("should create an executable instance", () => {
       new Assertion(executable).toLooselyHaveProperties({
         _beforeHooks: [], _afterHooks: [], _errors: [],
-        yield: { success: true }
+        yield: { success: true, main: null }
       });
     });
   });
@@ -48,31 +48,33 @@ describe("Executable", () => {
         return new Assertion(executable.exec).whenCalledWith(options).should().resolve({ success: true, main: mainResult });
       });
     });
-    context("when a beforeHook fails", () => {
-      beforeEach(() => {
-        executable._beforeHooks.push(sinon.stub(), sinon.stub());
-      });
-      context("when a beforeHook throws an error", () => {
-        beforeEach(() => {
-          new Stub(executable._beforeHooks).receives("0").with().andRejects();
-          new Stub(executable._beforeHooks).doesnt().receive("1");
+    context("hook failure", () => {
+      ["beforeHook", "afterHook"].forEach(hookType => {
+        context(`when a ${hookType} fails`, () => {
+          mainResult = hookType === "afterHook" ? mainResult : null;
+          beforeEach(() => {
+            executable[`_${hookType}s`].push(sinon.stub(), sinon.stub());
+            new Stub(executable[`_${hookType}s`]).doesnt().receive("1");
+            if (hookType === "afterHook") new Stub(executable).receives("main").andResolves(mainResult);
+          });
+          [{
+            name: "async error",
+            cb: () => new Stub(executable[`_${hookType}s`]).receives("0").with().andRejects(),
+            name: "sync error",
+            cb: () => new Stub(executable[`_${hookType}s`]).receives("0").with().andThrows(),
+            name: "unsuccessful response",
+            cb: () => new Stub(executable[`_${hookType}s`]).receives("0").with().andResolves({ success: false }),
+          }].forEach(hookResponse => {
+            context(`when a ${hookType} returns ${hookResponse.name} `, () => {
+              beforeEach(hookResponse.cb);
+              it("should return unsuccessful response", () => new Assertion(executable.exec)
+                .whenCalledWith().should().resolve({ success: false, main: mainResult }));
+            });
+          });
         });
-        it("should return unsuccessful response", () => new Assertion(executable.exec)
-          .whenCalledWith().should().resolve({ success: false }));
-      });
-      context("when a beforeHook returns unsuccessful response", () => {
-        beforeEach(() => {
-          new Stub(executable._beforeHooks).receives("0").with().andResolves({ success: false });
-          new Stub(executable._beforeHooks).doesnt().receive("1");
-        });
-        it("should return unsuccessful response", () => new Assertion(executable.exec)
-          .whenCalledWith().should().resolve({ success: false }));
       });
     });
     context("when main call fails", () => {
-
-    });
-    context("when an afterHook fails", () => {
 
     });
   });

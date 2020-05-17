@@ -8,25 +8,30 @@ module.exports = class Executable {
   before = callback => { this._beforeHooks.push(callback); return this; };
   after = callback => { this._afterHooks.push(callback); return this; };
   main = () => this;
-  exec = async options => {
+  exec = async (...args) => {
     if (await this.#callArray(this._beforeHooks) && !this.yield.success) return this.yield;
-    await this.#callMain(options);
+    await this.#callMain(...args);
     await this.#callArray(this._afterHooks);
     return this.yield;
   };
   #callArray = async array => {
-    for (let i in array) try {
-      let hookResult = await array[i]();
-      if (hookResult && hookResult.success === false) { this.#errorHandler(); break; };
-    } catch { this.#errorHandler(); break; };
+    for (let i in array) {
+      await this.#handledCall(array[i]);
+      if (this.yield.success === false) break;
+    };
     return true;
   };
-  #callMain = async options => {
-    try {
-      this.yield.main = await this.main(options)
-      if (this.yield.main && this.yield.main.success === false) { this.#errorHandler(); }
-    } catch { this.#errorHandler() };
+  #callMain = async (...args) => {
+    this.yield.main = await this.#handledCall(this.main, ...args);
     return true;
   };
   #errorHandler = async e => this.yield.success = false;
+  #handledCall = async (callback, ...args) => {
+    let result = null;
+    try {
+      result = await callback(...args);
+      if (result && result.success === false) { this.#errorHandler() };
+    } catch { this.#errorHandler() };
+    return result;
+  };
 };

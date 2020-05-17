@@ -46,7 +46,10 @@ describe("Executable", () => {
         new Stub(executable).receives("main").with(args, args2).andResolves(mainResult);
       });
       it("should call all relevant hooks and return main result", () => {
-        return new Assertion(executable.exec).whenCalledWith(args, args2).should().resolve({ success: true, main: mainResult, errors: [] });
+        return new Assertion(executable.exec)
+          .whenCalledWith(args, args2)
+          .should()
+          .resolve({ success: true, main: mainResult, errors: [] });
       });
     });
     context("hook failure", () => {
@@ -103,12 +106,17 @@ describe("Executable", () => {
         name: "unsuccessful response",
         mainResult: { success: false, error },
         cb: () => new Stub(executable).receives("main").with(args).andResolves({ success: false, error }),
+      },
+      {
+        name: "unsuccessful response with no error data",
+        mainResult: { success: false },
+        cb: () => new Stub(executable).receives("main").with(args).andResolves({ success: false }),
       }
-    ].forEach(hookResponse => {
+      ].forEach(hookResponse => {
         context(`when main call returns ${hookResponse.name}`, () => {
           beforeEach(hookResponse.cb);
           it("should return unsuccessful response", () => new Assertion(executable.exec)
-            .whenCalledWith(args).should().resolve({ success: false, main: hookResponse.mainResult, errors: [error] }));
+            .whenCalledWith(args).should().resolve({ success: false, main: hookResponse.mainResult, errors: [hookResponse.name === "unsuccessful response with no error data" ? undefined : error] }));
         });
       })
     });

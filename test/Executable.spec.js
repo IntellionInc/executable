@@ -9,8 +9,8 @@ describe("Executable", () => {
   describe("constructor", () => {
     it("should create an executable instance", () => {
       new Assertion(executable).toLooselyHaveProperties({
-        _beforeHooks: [], _afterHooks: [], _errors: [],
-        yield: { success: true, main: null }
+        _beforeHooks: [], _afterHooks: [],
+        yield: { success: true, main: null, errors: [] }
       });
     });
   });
@@ -46,12 +46,13 @@ describe("Executable", () => {
         new Stub(executable).receives("main").with(args, args2).andResolves(mainResult);
       });
       it("should call all relevant hooks and return main result", () => {
-        return new Assertion(executable.exec).whenCalledWith(args, args2).should().resolve({ success: true, main: mainResult });
+        return new Assertion(executable.exec).whenCalledWith(args, args2).should().resolve({ success: true, main: mainResult, errors: [] });
       });
     });
     context("hook failure", () => {
       ["beforeHook", "afterHook"].forEach(hookType => {
         context(`when a ${hookType} fails`, () => {
+          let error = new Error("some-hook-error");
           mainResult = hookType === "afterHook" ? mainResult : null;
           beforeEach(() => {
             executable[`_${hookType}s`].push(sinon.stub(), sinon.stub());
@@ -60,41 +61,54 @@ describe("Executable", () => {
           });
           [{
             name: "async error",
-            cb: () => new Stub(executable[`_${hookType}s`]).receives("0").with().andRejects(),
+            cb: () => new Stub(executable[`_${hookType}s`])
+              .receives("0")
+              .with()
+              .andRejects(error),
           }, {
             name: "sync error",
-            cb: () => new Stub(executable[`_${hookType}s`]).receives("0").with().andThrows(),
+            cb: () => new Stub(executable[`_${hookType}s`])
+              .receives("0")
+              .with()
+              .andThrows(error),
           }, {
             name: "unsuccessful response",
-            cb: () => new Stub(executable[`_${hookType}s`]).receives("0").with().andResolves({ success: false }),
+            cb: () => new Stub(executable[`_${hookType}s`])
+              .receives("0")
+              .with()
+              .andResolves({ success: false, error }),
           }].forEach(hookResponse => {
             context(`when a ${hookType} returns ${hookResponse.name} `, () => {
               beforeEach(hookResponse.cb);
               it("should return unsuccessful response", () => new Assertion(executable.exec)
-                .whenCalledWith().should().resolve({ success: false, main: mainResult }));
+                .whenCalledWith()
+                .should()
+                .resolve({ success: false, main: mainResult, errors: [error] }));
             });
           });
         });
       });
     });
     context("main call failure", () => {
+      let error = new Error("some-main-error");
       [{
         name: "async error",
         mainResult: null,
-        cb: () => new Stub(executable).receives("main").with(args).andRejects(),
+        cb: () => new Stub(executable).receives("main").with(args).andRejects(error),
       }, {
         name: "sync error",
         mainResult: null,
-        cb: () => new Stub(executable).receives("main").with(args).andThrows(),
+        cb: () => new Stub(executable).receives("main").with(args).andThrows(error),
       }, {
         name: "unsuccessful response",
-        mainResult: { success: false },
-        cb: () => new Stub(executable).receives("main").with(args).andResolves({ success: false }),
-      }].forEach(hookResponse => {
+        mainResult: { success: false, error },
+        cb: () => new Stub(executable).receives("main").with(args).andResolves({ success: false, error }),
+      }
+    ].forEach(hookResponse => {
         context(`when main call returns ${hookResponse.name}`, () => {
           beforeEach(hookResponse.cb);
           it("should return unsuccessful response", () => new Assertion(executable.exec)
-            .whenCalledWith(args).should().resolve({ success: false, main: hookResponse.mainResult }));
+            .whenCalledWith(args).should().resolve({ success: false, main: hookResponse.mainResult, errors: [error] }));
         });
       })
     });

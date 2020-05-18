@@ -1,4 +1,4 @@
-const { Assertion, expect, Stub, sinon } = require("@intellion/matchalatte");
+const { Assertion, expect, Stub, sinon } = require("./ExecutableMatcha");
 const Executable = require("../main/Executable");
 
 describe("Executable", () => {

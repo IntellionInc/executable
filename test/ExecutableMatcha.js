@@ -1,12 +1,12 @@
 let { Assertion, Stub, expect, sinon } = require("@intellion/matchalatte");
 
 class ExecutableAssertion extends Assertion {
-  receivesBeforeHook = hookMethod => {
+  receivesHook = hookMethod => {
     hookMethod();
     return this;
   };
-  whenBeforeHookIsCalled = index => {
-    this._obj = this._obj._beforeHooks[index || 0];
+  whenHookIsCalled = (type, index) => {
+    this._obj = this._obj.[`_${type}Hooks`][index || 0];
     this.args = [];
     return this;
   };

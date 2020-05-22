@@ -6,7 +6,7 @@ class ExecutableAssertion extends Assertion {
     return this;
   };
   whenHookIsCalled = (type, index) => {
-    this._obj = this._obj.[`_${type}Hooks`][index || 0];
+    this._obj = this._obj[`_${type}Hooks`][index || 0];
     this.args = [];
     return this;
   };

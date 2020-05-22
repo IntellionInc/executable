@@ -9,7 +9,7 @@ describe("Executable", () => {
   describe("constructor", () => {
     it("should create an executable instance", () => {
       new Assertion(executable).toLooselyHaveProperties({
-        _beforeHooks: [], _afterHooks: [],
+        _beforeHooks: [], _afterHooks: [], _finallyHooks: [],
         yield: { success: true, main: null, errors: [] }
       });
     });
@@ -35,6 +35,12 @@ describe("Executable", () => {
     let mainResult = { main: "result" };
     let args = { some: "args" };
     let args2 = { other: "args" };
+    beforeEach(() => {
+      new Stub(executable._finallyHooks).receives("0").with().andReturns();
+      new Stub(executable._finallyHooks).receives("1").with().andResolves();
+      new Stub(executable._finallyHooks).receives("2").with().andResolves({});
+      new Stub(executable._finallyHooks).receives("3").with().andReturns({});
+    });
     context("when everything succeeds", () => {
       beforeEach(() => {
         new Stub(executable._beforeHooks).receives("0").with().andReturns();

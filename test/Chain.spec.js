@@ -56,6 +56,10 @@ describe("Chain", () => {
     let addSuccessfulHooks = (type, count) => addStubbedHooks(type, count, { success: true });
     let addUnsuccessfulHooks = (type, count) => addStubbedHooks(type, count, { success: false });
     let addUncalledHooks = (type, count) => addStubbedHooks(type, count, { called: false }, true);
+    let yield = { some: "result" };
+    beforeEach(() => {
+      chain.yield = yield;
+    });
 
     context("when all hooks are successful", () => {
       beforeEach(() => {
@@ -65,7 +69,7 @@ describe("Chain", () => {
         addSuccessfulHooks("finally", 3);
       });
       it("should call all hooks", () => new Assertion(chain.exec)
-        .whenCalledWith().should().succeed())
+        .whenCalledWith().should().resolve(yield));
     });
     context("when some hooks return unsuccessful response", () => {
       context("when breakOnError is set to false", () => {
@@ -77,7 +81,7 @@ describe("Chain", () => {
           addUnsuccessfulHooks("finally", 3);
         });
         it("should call all hooks", () => new Assertion(chain.exec)
-          .whenCalledWith().should().succeed())
+          .whenCalledWith().should().resolve(yield));
       });
       context("when breakOnError is set to true", () => {
         before(() => options = { breakOnError: true });
@@ -87,11 +91,11 @@ describe("Chain", () => {
           addUncalledHooks("main", 4);
           addUncalledHooks("after", 2);
           addSuccessfulHooks("finally", 2);
-          addUnsuccessfulHooks("finally",1);
-          addUncalledHooks("finally",1);
+          addUnsuccessfulHooks("finally", 1);
+          addUncalledHooks("finally", 1);
         });
         it("should stop execution after the failed hook", () => new Assertion(chain.exec)
-          .whenCalledWith().should().succeed())
+          .whenCalledWith().should().resolve(yield));
       });
     });
   });

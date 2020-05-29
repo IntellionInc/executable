@@ -20,6 +20,7 @@ module.exports = class Chain {
     let stack = [...this._beforeHooks, ...this._mainHooks, ...this._afterHooks];
     await this.#callHooks(stack);
     await this.#callHooks(this._finallyHooks);
+    return this.yield;
   };
   #callHooks = async hookList => {
     for (let i in hookList) {

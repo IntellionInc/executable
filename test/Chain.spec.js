@@ -11,7 +11,7 @@ describe("Chain", () => {
     context("when options object is provided", () => {
       before(() => { options = { some: "options" } })
       it("should create a chain object", () => new Assertion(chain)
-        .toLooselyHaveProperties({ _beforeHooks: [], _mainHooks: [], _afterHooks: [], _finallyHooks: [], ...options }));
+        .toLooselyHaveProperties({ _beforeHooks: [], _mainHooks: [], _afterHooks: [], _finallyHooks: [], yield: {}, ...options }));
     });
     context("when no options are passed in", () => {
       before(() => { options = undefined });

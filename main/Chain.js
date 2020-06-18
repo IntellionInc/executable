@@ -5,6 +5,7 @@ module.exports = class Chain {
     this._mainHooks = [];
     this._afterHooks = [];
     this._finallyHooks = [];
+    this.yield = {};
     Object.keys(options).forEach(key => this[key] = options[key]);
   };
   addHook = (type, method) => {

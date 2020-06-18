@@ -10,6 +10,10 @@ class ExecutableAssertion extends Assertion {
     this.args = [];
     return this;
   };
+  toHaveHook = (type, method) => {
+    let matchingHooks = this._obj[`_${type}Hooks`].filter(hook => hook.method === method);
+    expect(matchingHooks).to.have.lengthOf(1);
+  };
 };
 class ExecutableStub extends Stub { };
 

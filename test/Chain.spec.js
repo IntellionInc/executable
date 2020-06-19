@@ -42,9 +42,11 @@ describe("Chain", () => {
     });
   });
   describe("exec", () => {
+    let errorHandler, error = new Error("something");
     let addStubbedHooks = (type, count, result, notCalled) => {
       for (let i = 0; i < count; i++) {
         let hook = {};
+        if (result.success === false) errorHandler.with(error).andResolves("errorHandlerResult");
         if (notCalled) new Stub(hook).doesnt().receive("call");
         else {
           let stubbedHook = new Stub(hook).receives("call").with()
@@ -54,11 +56,12 @@ describe("Chain", () => {
       };
     };
     let addSuccessfulHooks = (type, count) => addStubbedHooks(type, count, { success: true });
-    let addUnsuccessfulHooks = (type, count) => addStubbedHooks(type, count, { success: false });
+    let addUnsuccessfulHooks = (type, count) => addStubbedHooks(type, count, { success: false, error });
     let addUncalledHooks = (type, count) => addStubbedHooks(type, count, { called: false }, true);
     let yield = { some: "result" };
     beforeEach(() => {
       chain.yield = yield;
+      errorHandler = new Stub(chain).receives("errorHandler");
     });
 
     context("when all hooks are successful", () => {

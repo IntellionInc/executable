@@ -26,7 +26,9 @@ module.exports = class Chain {
   #callHooks = async hookList => {
     for (let i in hookList) {
       let hook = await hookList[i].call();
+      if (!hook.success) this.errorHandler(hook.error);
       if (this.breakOnError && !hook.success) break;
     };
   };
+  errorHandler = async (error) => { };
 };

@@ -1,11 +1,10 @@
 module.exports = class Chain {
   constructor(options) {
     options = options || {};
-    this._beforeHooks = [];
-    this._mainHooks = [];
-    this._afterHooks = [];
-    this._finallyHooks = [];
-    this.yield = {};
+    Object.assign(this, {
+      _beforeHooks: [], _mainHooks: [], _afterHooks: [], _finallyHooks: [],
+      duration: 0, yield: {}, createdAt: new Date()
+    });
     Object.keys(options).forEach(key => this[key] = options[key]);
   };
   addHook = (type, method) => {
@@ -20,6 +19,7 @@ module.exports = class Chain {
   exec = async () => {
     let stack = [...this._beforeHooks, ...this._mainHooks, ...this._afterHooks];
     await this.#callHooks(stack);
+    this.duration = new Date() - this.createdAt;
     await this.#callHooks(this._finallyHooks);
     return this.yield;
   };

@@ -1,17 +1,21 @@
-const { Assertion, Stub, expect } = require("./ExecutableMatcha");
+const { Assertion, Stub, expect, sinon } = require("./ExecutableMatcha");
 const { Chain, Hook } = require("../main");
 const main = require("../main");
 
 describe("Chain", () => {
-  let chain, options;
+  let chain, options, clock;
   beforeEach(() => {
+    clock = sinon.useFakeTimers(new Date("01/01/1999"));
     chain = new Chain(options);
+  });
+  afterEach(() => {
+    sinon.restore();
   });
   describe("constructor", () => {
     context("when options object is provided", () => {
       before(() => { options = { some: "options" } })
       it("should create a chain object", () => new Assertion(chain)
-        .toLooselyHaveProperties({ _beforeHooks: [], _mainHooks: [], _afterHooks: [], _finallyHooks: [], yield: {}, ...options }));
+        .toLooselyHaveProperties({ _beforeHooks: [], _mainHooks: [], _afterHooks: [], _finallyHooks: [], yield: {}, ...options, duration: 0, createdAt: new Date("01/01/1999") }));
     });
     context("when no options are passed in", () => {
       before(() => { options = undefined });
@@ -42,7 +46,7 @@ describe("Chain", () => {
     });
   });
   describe("exec", () => {
-    let errorHandler, error = new Error("something");
+    let errorHandler, error = new Error("something"), duration = 24 * 60 * 60 * 1000;
     let addStubbedHooks = (type, count, result, notCalled) => {
       for (let i = 0; i < count; i++) {
         let hook = {};
@@ -62,8 +66,11 @@ describe("Chain", () => {
     beforeEach(() => {
       chain.yield = yield;
       errorHandler = new Stub(chain).receives("errorHandler");
+      clock.tick(duration);
     });
-
+    afterEach(() => {
+      expect(chain.duration).to.eq(duration);
+    });
     context("when all hooks are successful", () => {
       beforeEach(() => {
         addSuccessfulHooks("before", 2);

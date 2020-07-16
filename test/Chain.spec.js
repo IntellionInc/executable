@@ -108,5 +108,24 @@ describe("Chain", () => {
           .whenCalledWith().should().resolve(yield));
       });
     });
+    context("when shouldBreak is triggered", () => {
+      before(() => options = { breakOnError: false });
+      beforeEach(() => {
+        addSuccessfulHooks("before", 2);
+        let hook = { success: true };
+        new Stub(hook).receives("call").executes(async () => {
+          chain.shouldBreak = true;
+          return hook;
+        });
+        chain._beforeHooks.push(hook);
+        addUncalledHooks("before", 1);
+        addUncalledHooks("main", 4);
+        addUncalledHooks("after", 2);
+        addSuccessfulHooks("finally", 2);
+        addUnsuccessfulHooks("finally", 1);
+      });
+      it("should stop execution after the breaking hook", () => new Assertion(chain.exec)
+        .whenCalledWith().should().resolve(yield));
+    });
   });
 });

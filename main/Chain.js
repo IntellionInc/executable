@@ -3,7 +3,7 @@ module.exports = class Chain {
     options = options || {};
     Object.assign(this, {
       _beforeHooks: [], _mainHooks: [], _afterHooks: [], _finallyHooks: [],
-      duration: 0, yield: {}, createdAt: new Date()
+      duration: 0, yield: {}, createdAt: new Date(), shouldBreak: false
     });
     Object.keys(options).forEach(key => this[key] = options[key]);
   };

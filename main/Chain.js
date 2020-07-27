@@ -12,10 +12,16 @@ module.exports = class Chain {
     this[`_${type}Hooks`].push(new Hook(type, method));
     return this
   };
+  insertHook = (type, callback) => {
+    let { Hook } = require("./");
+    this._beforeHooks.unshift(new Hook(type, callback));
+    return this;
+  };
   before = callback => this.addHook("before", callback);
   main = callback => this.addHook("main", callback);
   after = callback => this.addHook("after", callback);
   finally = callback => this.addHook("finally", callback);
+  initially = callback => this.insertHook("before", callback);
   exec = async () => {
     let stack = [...this._beforeHooks, ...this._mainHooks, ...this._afterHooks];
     await this.#callHooks(stack);

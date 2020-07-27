@@ -24,14 +24,31 @@ describe("Chain", () => {
     });
   });
   describe("addHook", () => {
-    let type = "before", method = () => { };
+    let type = "before", method = () => { }, someOtherMethod = () => { };;
     let hook = { some: "hook" };
     beforeEach(() => {
+      chain.insertHook("before", someOtherMethod);
       new Stub(main).receives("Hook").new().with(type, method).andReturns(hook);
-
     })
-    it("should add a hook to the designated array and return this", () => new Assertion(chain.addHook)
-      .whenCalledWith(type, method).should(r => expect(chain._beforeHooks).to.include(hook)).return(chain));
+    it("should add a hook to the end of designated array and return this", () => new Assertion(chain.addHook)
+      .whenCalledWith(type, method)
+      .should(r => {
+        expect(chain._beforeHooks).to.include(hook)
+        expect(chain._beforeHooks[1]).to.eq(hook)
+      }).return(chain));
+  });
+  describe("insertHook", () => {
+    let type = "before", method = () => { }, someOtherMethod = () => { };
+    let hook = { some: "hook" };
+    beforeEach(() => {
+      chain.addHook("before", someOtherMethod);
+      new Stub(main).receives("Hook").new().with(type, method).andReturns(hook);
+    })
+    it("should add a hook to the beginning of designated array and return this", () => new Assertion(chain.insertHook)
+      .whenCalledWith(type, method).should(r => {
+        expect(chain._beforeHooks).to.include(hook)
+        expect(chain._beforeHooks[0]).to.eq(hook)
+      }).return(chain));
   });
   describe("hookShortcuts", () => {
     let callback = () => { };
@@ -44,6 +61,14 @@ describe("Chain", () => {
           .whenCalledWith(callback).should().return(chain));
       });
     });
+  });
+  describe("initially", () => {
+    let callback = () => { };
+    beforeEach(() => {
+      new Stub(chain).receives("insertHook").with("before", callback).andReturns(chain);
+    });
+    it("should return addHook response", () => new Assertion(chain.initially)
+      .whenCalledWith(callback).should().return(chain));
   });
   describe("exec", () => {
     let errorHandler, error = new Error("something"), duration = 24 * 60 * 60 * 1000;
